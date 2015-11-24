@@ -18,14 +18,16 @@ jurydata$r_disappear[jurydata$r_disappear==99] <- NA
 jurydata$r_disorder[jurydata$r_disorder==99] <- NA
 jurydata$off_lawyer[jurydata$off_lawyer==99] <- NA
 jurydata$de_lawyer[jurydata$de_lawyer==99] <- NA
+jurydata$duration[jurydata$duration==99] <- NA
 str(jurydata)
-#multinominal logit regression (DV:"caregiving")
+#use multinominal logit regression (DV:"caregiving")
 install.packages("mlogit")
 library(mlogit)
 jurytable <- mlogit.data(jurydata, varying = NULL, choice = "caregiver",shape = "wide")
 model<-mlogit(formula=caregiver ~ 0 | r_affair
             +r_violence+r_other+ r_prisoner+r_disappear
             +r_disorder+off_lawyer + de_lawyer
+            +duration
             , data=jurytable, reflevel="0")
 summary(model)
 ## change reference level of DV
@@ -50,8 +52,16 @@ ctree.model <- ctree(caregiver ~ . , data = ju3)
 plot(ctree.model)
 
 #binary logit regression (DV:"off_lawyer")
-model <- glm(formula= off_lawyer~., data=jurydata, family=binomial)
+library(mlogit)
+jurytable <- mlogit.data(jurydata, varying = NULL, choice = "off_lawyer",shape = "wide")
+model<-mlogit(formula=off_lawyer ~ 0 | r_affair
+            +r_violence+r_other+ r_prisoner+r_disappear
+              +r_disorder+ de_lawyer + duration
+              , data=jurytable, reflevel="0")
 summary(model)
-
-
+model_test <- glm(off_lawyer ~ r_affair
+                  +r_violence+r_other+ r_prisoner+r_disappear
+                  +r_disorder+ de_lawyer + duration
+                  ,data = jurydata,family=binomial())
+summary(model_test)
 
